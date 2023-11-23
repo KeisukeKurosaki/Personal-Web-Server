@@ -12,13 +12,19 @@ namespace myOwnWebServer
     {
         private string serverIP;
         private string serverFolder;
+        private string serverPort;
 
         public int StatusCode { get; set; }
 
-        public RequestHandler(string iP, string directory)
+        public string usableFile { get; set; }
+
+        public string contentType { get; set; }
+
+        public RequestHandler(string iP, string directory, string port)
         {
             serverIP = iP;
             serverFolder = directory;
+            serverPort = port;
         }
 
         public void RequestParser(TcpClient client)
@@ -35,21 +41,31 @@ namespace myOwnWebServer
 
             // Now we need to parse the request to get our separate pieces and remove the empty entries to only get our needed values to help in creating a response
 
+
+            // IMPLEMENT TRY CATCH WITH AN OBJECT OR SOMETHING HERE -=============================================================
+
+
             string[] parsedRequest = requestString.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             string[] firstLineParts = parsedRequest[0].Split(' ');  // Used to break the first line of the parsed request into its separate parts
 
             string hostLineString = parsedRequest[1];               // Used to get the line that should hold the host on it
 
-            if (parsedRequest.Length != 2)                          // Cant handle requests with any more arguments
-            {
-                StatusCode = Constants.kBadRequest;
-                return;
-            }
+            // CHECK IF RESOURCE EXISTS
+
+            string verb = firstLineParts[0];                        // Gather each individual part of the first line to check for errors
+
+            string resource = firstLineParts[1].Replace('/', '\\'); // Get our proper file path
+
+            resource = Uri.UnescapeDataString(resource);            // Recieve the actual path if there were any spaces in it (they're treated differently in encoding URL)
+
+            string version = firstLineParts[2];                     // Grab the version number
+
+            FileOperations.RequestLog(verb, resource);              // Complete our log entry now with our parsed values
 
             string host = "";
 
-            if (hostLineString.StartsWith("HOST: "))                // Determine if the second request line contains a host
+            if (hostLineString.StartsWith("HOST: ") || hostLineString.StartsWith("Host: "))               // Determine if the second request line contains a host
             {
                 host = hostLineString.Substring(6).Trim();
             }
@@ -59,44 +75,36 @@ namespace myOwnWebServer
                 return;
             }
 
-            // CHECK IF RESOURCE EXISTS
-
-            string verb = firstLineParts[0];                        // Gather each individual part of the first line to check for errors
-            string resource = firstLineParts[1];
-            string version = firstLineParts[2];
-
             // ERROR CHECK EACH REQUEST (CHECK FOR IF ITS GET, PROPER FILE EXTENSION, VALID HOST, AND VERSION NUMBER
-            string outGoingError = null;
+
 
             if (!ValidateVerb(verb))
             {
-                outGoingError = "< Method used that is not aloud >";
                 StatusCode = Constants.kMethodNotAloud;
+                return;
             }
 
             if (!ValidateResource(resource))
             {
-                outGoingError = "< Resource used is not supported >";
                 StatusCode = Constants.kForbidden;
-                ;
+                return;
             }
 
             if (!ValidateVersion(version))
             {
-                outGoingError = "< Invalid HTTP version requested >";
                 StatusCode = Constants.kInvalidHTTPVersion;
+                return;
             }
 
             if (!ValidateRequestIP(host))
             {
-                outGoingError = "< Incorrect IP address was requested >";
                 StatusCode = Constants.kBadGateway;
+                return;
             }
 
-            if (outGoingError == null)              // If the outGoingError is still null, nothing wrong was detected with the values requested, so continue
-            {
-                StatusCode = 200;
-            }
+            // All the validation was passed, so we set the status code at the end to be OK and also our resource
+            StatusCode = 200;
+            usableFile = resource;
         }
 
         private bool ValidateVerb(string verb)
@@ -112,12 +120,12 @@ namespace myOwnWebServer
         {
             string extension = Path.GetExtension(resource);
 
-            if (!string.IsNullOrEmpty(extension))
+            if (string.IsNullOrEmpty(extension))
             {
                 return false;
             }
 
-            string fullPath = Path.Combine(serverFolder, resource);
+            string fullPath = serverFolder + resource;
 
             if (!File.Exists(fullPath))
             {
@@ -129,6 +137,7 @@ namespace myOwnWebServer
             {
                 if (extension == usableExtension)
                 {
+                    contentType = Constants.kContentTypeHTML;
                     return true;
                 }
             }
@@ -137,12 +146,20 @@ namespace myOwnWebServer
             {
                 if (extension == usableExtension)
                 {
+                    contentType = Constants.kContentTypeJPG;
                     return true;
                 }
             }
 
-            if (extension == Constants.kGifExt || extension == Constants.kTextExt)
+            if (extension == Constants.kGifExt)
             {
+                contentType = Constants.kContentTypeGIF;
+                return true;
+            }
+
+            if (extension == Constants.kTextExt)
+            {
+                contentType = Constants.kContentTypeText;
                 return true;
             }
             return false;
@@ -159,7 +176,38 @@ namespace myOwnWebServer
 
         private bool ValidateRequestIP(string requestIP)
         {
-            if (requestIP != serverIP)
+            // Need to split the two parts up (IP : Host)
+            // IP Can be the servers IP it is using OR Localhost
+            // Port must be the port we are using
+
+
+            string parsedIP;
+            string parsedPort;
+
+            int colonIndex = requestIP.IndexOf(':');
+
+            if (requestIP == "localhost")
+            {
+                return true;
+            }
+
+
+            if (colonIndex != -1)
+            {
+                parsedIP = requestIP.Substring(0, colonIndex);
+                parsedPort = requestIP.Substring(colonIndex + 1);
+
+                if (parsedIP != serverIP)
+                {
+                    return false;
+                }
+
+                if (parsedPort != serverPort)
+                {
+                    return false;
+                }
+            }
+            else
             {
                 return false;
             }

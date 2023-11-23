@@ -36,6 +36,11 @@ namespace myOwnWebServer
         public const string kGifExt = ".gif";
         public const string kTextExt = ".txt";
 
+        public const string kContentTypeHTML = "text/html";
+        public const string kContentTypeText = "text/plain";
+        public const string kContentTypeJPG = "image/jpeg";
+        public const string kContentTypeGIF = "image/gif";
+
         public const string kVersion = "HTTP/1.1";
         public const string kProperVerb = "GET";
 
@@ -46,5 +51,16 @@ namespace myOwnWebServer
         public const int kForbidden = 403;          // Used for files that are not used with the proper extension
         public const int kInvalidHTTPVersion = 505; // Used for invalid HTTP versions
         public const int kBadGateway = 502;         // Used for invalid server IP in requests
+
+        public static readonly IReadOnlyDictionary<string, string> HTTPDictionary = new Dictionary<string, string>
+        {
+            { "200", "OK" },
+            { "400", "Bad Request" },
+            { "404", "Not Found" },
+            { "405", "Method Not Aloud" },
+            { "403", "Forbidden" },
+            { "505", "HTTP Version Not Supported" },
+            { "502", "Bad Gateway" }
+        };
     }
 }

@@ -47,7 +47,6 @@ namespace myOwnWebServer
 
             TcpListener listener = new TcpListener(userInput._SelectedAddress, userInput._SelectedPort);    // Create a new Tcp Listener for the server
 
-            RequestHandler clientHandler = new RequestHandler(userInput._AddressString, userInput._WebsiteData);
 
 
 
@@ -58,16 +57,17 @@ namespace myOwnWebServer
 
                 while (true)                        // Start server in a while loop :)
                 {
+                    RequestHandler clientHandler = new RequestHandler(userInput._AddressString, userInput._WebsiteData, userInput._SelectedPort.ToString());
+
                     TcpClient client = listener.AcceptTcpClient();
 
                     clientHandler.RequestParser(client);
 
-                    ResponseHandler responseHandler = new ResponseHandler(client, clientHandler.StatusCode);
+                    ResponseHandler responseHandler = new ResponseHandler(client, clientHandler.usableFile, clientHandler.StatusCode, clientHandler.contentType, userInput._WebsiteData);
 
                     responseHandler.ResponseSender();
                     client.Close();
                 }
-
             }
             catch (Exception)
             {
