@@ -23,7 +23,7 @@ using System.Reflection;
 namespace myOwnWebServer
 {
     /*
-    * PUBLIC INTERNAL CLASS : CommandValidation
+    * PUBLIC CLASS          : CommandValidation
     * DESCRIPTION	        :
     *	This class is used in order to properly validate the command-line arguments that are used for the application
     *	pertaining to their formatting and also the values each argument will hold and be required for throughout the
@@ -55,17 +55,17 @@ namespace myOwnWebServer
         }
 
         /*
-        *	Method          : CommandLineParse(string[] commandLineArgs)
+        *	METHOD          : CommandLineParse(string[] commandLineArgs)
         *	DESCRIPTION		:
-        *		This method acts in order to parse the command-line arguments the user will have entered into the program in order to recieve the
+        *		This method acts in order to parse the command-line arguments the user will have entered into the program in order to receive the
         *		actual value of each arument (instead of it being combined with its prefix (Ex. -webPort=5300). Each argument is individually 
         *		checked to see if it can be parsed correctly. If not, the proper error is displayed to the user in order to let them know
         *		which area is causing the application to not continue.
         *   PARAMETERS      :
-        *		string commandLineArgs     :   These are the command-line arguments that were entered into the program
+        *		string[] commandLineArgs     :   These are the command-line arguments that were entered into the program
         *	RETURNS			:
-        *		bool true	               :   True is returned if the arguments contained their proper prefix
-        *		bool false                 :   False is returned if ANY of the arguments did not have their proper prefix
+        *		bool true	                 :   True is returned if the arguments contained their proper prefix
+        *		bool false                   :   False is returned if ANY of the arguments did not have their proper prefix
         */
         public bool CommandLineParse(string[] commandLineArgs)
         {
@@ -117,7 +117,7 @@ namespace myOwnWebServer
         }
 
         /*
-        *	Method          : ValueChecks(string[] parsedCommandArgs)
+        *	METHOD          : ValueChecks(string[] parsedCommandArgs)
         *	DESCRIPTION		:
         *		This method acts to validate the parsed data that was recieved from the command-line arguments. The parsing was used in order to remove the 
         *		prefixes used to indicate what each argument was used for. Now, each of the separate arguments will undergo a validation to ensure it is a 
@@ -177,7 +177,7 @@ namespace myOwnWebServer
         }
 
         /*
-        *	Method          : IPAddressCheck(string inputIP)
+        *	METHOD          : IPAddressCheck(string inputIP)
         *	DESCRIPTION		:
         *		This method acts in order to validate the server IP address the user will enter into the program. There are a variety of checks this 
         *		value will need to pass through, each of which need to be passed in order to use it in the program. As such, this method will go through this 
@@ -228,7 +228,7 @@ namespace myOwnWebServer
         }
 
         /*
-        *	Method          : PortCheck(string inputPort)
+        *	METHOD          : PortCheck(string inputPort)
         *	DESCRIPTION		:
         *		This method acts in order to validate the port input the user will enter into the application. As such, it must be an integer number
         *		and within a valid range. If the number passes the validation, it can be properly used for the application to continue. 
@@ -256,7 +256,7 @@ namespace myOwnWebServer
         }
 
         /*
-        *	Method          : StorageFileCheck(string fileInput)
+        *	METHOD          : StorageFileCheck(string fileInput)
         *	DESCRIPTION		:
         *		This method acts in order to determine if a folder directory exists. It will take the argument from its parameter and run a quick check
         *		to see whether it can be found or not and return the proper status indicating the result.
@@ -277,7 +277,7 @@ namespace myOwnWebServer
         }
 
         /*
-        *	Method          : ArgumentCountCheck(int argCount)
+        *	METHOD          : ArgumentCountCheck(int argCount)
         *	DESCRIPTION		:
         *		This method is used in order to determine if a user has entered a valid amount of command-line arguments into the 
         *		application. If the user did not enter the exact amount of arguments needed, the user will be informed of their 
@@ -289,7 +289,7 @@ namespace myOwnWebServer
         */
         public void ArgumentCountCheck(int argCount)
         {
-            if (argCount == Constants.kArgsMin || argCount > Constants.kArgsMax)          // Check the count of command-line arguments
+            if (argCount != Constants.kArgsMax)          // Check the count of command-line arguments
             {
                 CmdLineError.ArgumentCountError();
             }

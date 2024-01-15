@@ -1,5 +1,5 @@
 ﻿/*
-* FILE				: program.cs
+* FILE				: Driver.cs
 * PROJECT			: PROG 2001 - Assignment 05 (myOwnWebServer)
 * PROGRAMMERS		: Cody Glanville ID: 8864645
 * FIRST VERSION		: November 19, 2023
@@ -19,14 +19,20 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Permissions;
 
 namespace myOwnWebServer
 {
-    internal class Program
+    /*
+    * INTERNAL CLASS        : Driver
+    * DESCRIPTION	        :
+    *	This class is used in order to hold the Main() that will help run our server program. As such, validation is carried out on what was entered into
+    *	the command-line and then a TcpListener is utilized in order to create a single-threaded server that will handle one client request at a time.
+    */
+    internal class Driver
     {
         static void Main(string[] args)
         {
-
             FileOperations.InitialLogCreation();                                   // Determines if the .log file needs to be created or overwritten
           
             CommandValidation userInput = new CommandValidation();
@@ -45,33 +51,33 @@ namespace myOwnWebServer
                 CmdLineError.BasicErrorClosing();
             }
 
-            TcpListener listener = new TcpListener(userInput._SelectedAddress, userInput._SelectedPort);    // Create a new Tcp Listener for the server
-
-
-
+            TcpListener listener = new TcpListener(userInput._SelectedAddress, userInput._SelectedPort);    // Create a new TcpListener for the server
 
             try
             {
-                listener.Start();                   // start the server
-                FileOperations.ServerStarted();     // Make server log to indicate the server start
+                listener.Start();                   // Start the server
+                FileOperations.ServerStarted();     // Make a new server log entry to indicate the server starting successfully
 
-                while (true)                        // Start server in a while loop :)
+                while (true)                        // Start and run the server in a while loop
                 {
                     RequestHandler clientHandler = new RequestHandler(userInput._AddressString, userInput._WebsiteData, userInput._SelectedPort.ToString());
 
                     TcpClient client = listener.AcceptTcpClient();
 
-                    clientHandler.RequestParser(client);
+                    clientHandler.RequestParser(client);            // Take in a request and validate it
 
-                    ResponseHandler responseHandler = new ResponseHandler(client, clientHandler.usableFile, clientHandler.StatusCode, clientHandler.contentType, userInput._WebsiteData);
+                    ResponseHandler responseHandler = new ResponseHandler(client, clientHandler.usableFile, clientHandler.StatusCode.ToString(), clientHandler.contentType, userInput._WebsiteData);
 
-                    responseHandler.ResponseSender();
-                    client.Close();
+                    responseHandler.ResponseSender();               // Send out a response to the client
+
+                    client.Close();                                 // Close the connection to the client
                 }
             }
-            catch (Exception)
+            catch (Exception)                                       // Utilized if the server crashes unexpectedly 
             {
-                Console.WriteLine("Server blew up... :(");
+                Console.WriteLine("CRITICAL SERVER ERROR: The server has crashed...");
+                FileOperations.CriticalServerError();
+                CmdLineError.BasicErrorClosing();
             }
         }
     }
